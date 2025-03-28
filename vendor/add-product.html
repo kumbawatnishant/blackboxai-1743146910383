@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Product - ShopEase</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f7fafc;
+        }
+    </style>
+</head>
+<body>
+    <nav class="bg-white shadow-sm">
+        <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+            <a href="../index.html" class="flex items-center">
+                <span class="font-semibold text-gray-500 text-lg">ShopEase</span>
+            </a>
+            <div class="flex space-x-4">
+                <a href="dashboard.html" class="text-blue-500 hover:text-blue-700">Dashboard</a>
+                <a href="../auth/login.html" class="text-blue-500 hover:text-blue-700">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-2xl mx-auto px-4 py-8">
+        <div class="bg-white rounded-lg shadow-md p-8">
+            <h1 class="text-2xl font-bold mb-6">Add New Product</h1>
+            
+            <form id="add-product-form" class="space-y-4">
+                <div>
+                    <label for="product-name" class="block text-sm font-medium text-gray-700">Product Name</label>
+                    <input type="text" id="product-name" required
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border">
+                </div>
+                
+                <div>
+                    <label for="product-description" class="block text-sm font-medium text-gray-700">Description</label>
+                    <textarea id="product-description" rows="3" required
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border"></textarea>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="product-price" class="block text-sm font-medium text-gray-700">Price ($)</label>
+                        <input type="number" id="product-price" min="0" step="0.01" required
+                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border">
+                    </div>
+                    <div>
+                        <label for="product-stock" class="block text-sm font-medium text-gray-700">Stock Quantity</label>
+                        <input type="number" id="product-stock" min="0" required
+                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border">
+                    </div>
+                </div>
+                
+                <div>
+                    <label for="product-category" class="block text-sm font-medium text-gray-700">Category</label>
+                    <select id="product-category" required
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border">
+                        <option value="">Select category</option>
+                        <option value="electronics">Electronics</option>
+                        <option value="fashion">Fashion</option>
+                        <option value="home">Home & Garden</option>
+                        <option value="beauty">Beauty</option>
+                        <option value="sports">Sports</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Product Images</label>
+                    <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
+                        <div class="space-y-1 text-center">
+                            <div class="flex text-sm text-gray-600">
+                                <label for="product-images" class="relative cursor-pointer bg-white rounded-md font-medium text-blue-500 hover:text-blue-700 focus-within:outline-none">
+                                    <span>Upload images</span>
+                                    <input id="product-images" type="file" multiple class="sr-only">
+                                </label>
+                                <p class="pl-1">or drag and drop</p>
+                            </div>
+                            <p class="text-xs text-gray-500">PNG, JPG up to 5MB</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <button type="submit"
+                    class="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600 transition duration-300">
+                    Add Product
+                </button>
+            </form>
+        </div>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+            if (!currentUser || currentUser.type !== 'vendor') {
+                window.location.href = '../auth/login.html';
+            }
+
+            document.getElementById('add-product-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const product = {
+                    id: Date.now().toString(),
+                    name: document.getElementById('product-name').value,
+                    description: document.getElementById('product-description').value,
+                    price: parseFloat(document.getElementById('product-price').value),
+                    stock: parseInt(document.getElementById('product-stock').value),
+                    category: document.getElementById('product-category').value,
+                    createdAt: new Date().toISOString()
+                };
+
+                // Update vendor's products in localStorage
+                const users = JSON.parse(localStorage.getItem('users'));
+                const vendorIndex = users.vendors.findIndex(v => v.id === currentUser.id);
+                
+                if (!users.vendors[vendorIndex].products) {
+                    users.vendors[vendorIndex].products = [];
+                }
+                
+                users.vendors[vendorIndex].products.push(product);
+                localStorage.setItem('users', JSON.stringify(users));
+                
+                // Update current user session
+                currentUser.products = users.vendors[vendorIndex].products;
+                localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                
+                // Redirect to dashboard
+                window.location.href = 'dashboard.html';
+            });
+        });
+    </script>
+</body>
+</html>
